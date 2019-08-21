@@ -58,38 +58,50 @@ D = sqrt(f)*D_cj;
   T   = 0*lambda;
   j   = length(lambda);
 
-for i = 1:j; 
-  [P(i), U(i), c(i), rho(i),V(i),xFD(i),M(i),T(i)] = overdrivenD(P_0, rho_0, T_0, Q, gamma,Rsp,c_0,D,lambda(i));
-end
+  for i = 1:j; 
+    [P(i), U(i), c(i), rho(i),V(i),xFD(i),M(i),T(i)] = overdrivenD(P_0, rho_0, T_0, Q, gamma,Rsp,c_0,D,lambda(i));
+  end
   rate = k*(1-lambda).*e.^(-Ea*T_0./T);
+  
+  %simulation parameters
+  k_nondim = -k*x12
+  piston_velocity = U(end)
+  
  figure(1)
  plot (x,P/P_0, "or" )
  grid
  title('Pressure vs x')
+
  figure(2)
  plot (x, U/c_0)
  grid
  title('Particle Velocity vs x')
+
  figure(3)
  plot (t/t12,T/T_0, "r" )
  grid
  title('Temperature vs t')
+
  figure(4)
  plot (x,rho/rho_0, "+bk" )
  grid
  title('Density vs x')
+
  figure(5)
  plot (x,lambda, "+bk" )
  grid
  title('lambda vs x')
+
  figure(6)
  plot (t/t12,lambda, "+bk" )
  grid
  title('lambda vs t')
+
  figure(7)
  plot (x/x12,T/T_0, "r" )
  grid
  title('Temperature vs x')
+
  figure(8)
  plot(t/t12, rate)
  title('Rate vs time')
