@@ -15,4 +15,5 @@ function [D_cj,P_cj,rho_cj, V_cj, C_cj, M_cj, T_cj, u_cj] = znd_polyfn(P_0, rho_
   C_cj = sqrt(gamma * Rsp*1000 * T_cj);
   D_cj = M_cj * c0;
   u_cj = D_cj*(1-rho_0/rho_cj);
+
 endfunction

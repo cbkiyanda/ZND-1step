@@ -1,11 +1,11 @@
 %Chemical parameters
 gamma = 1.2;
 Q   = 50; %Non-dimensionalized
-Ea  = 50; %Non-dimensionalized
+Ea  = 20; %Non-dimensionalized
 M = 28.96; #Kg/KMol
 
 %Overdrive = (D/D_cj)^2
-f = 1.6; 
+f = 1.000; 
 
 %Quiescent State
 P_0 = 100;  # kPa
@@ -31,8 +31,8 @@ ea= Ea* Rsp *1000*T_0; # KJ/Kg
 D = sqrt(f)*D_cj;
 
   tspan = [0 0.5 0.9999]
-  opt = odeset ("RelTol", 1e-12, "InitialStep", 1e-1, "MaxStep", 1e-1);#, "AbsTol", 1e-8);
-  [lambda, xt] = ode45 (@(lambda,xt) znd_integrate(lambda,xt,P_0, rho_0, T_0, Q, gamma,Rsp,c_0,D,Ea,k), tspan, [0,0]);
+  opt = odeset ("RelTol", 1e-10, "InitialStep", 1e-1, "MaxStep", 1e-1);#, "AbsTol", 1e-8);
+  [lambda, xt] = ode45(@(lambda,xt) znd_integrate(lambda,xt,P_0, rho_0, T_0, Q, gamma,Rsp,c_0,D,Ea,k), tspan, [0,0], opt);
   t12 = xt(2,2)
   x12 = xt(2,1)
   xr  = xt(3,1)
@@ -42,8 +42,8 @@ D = sqrt(f)*D_cj;
   xspan = 0:dx:xr;
   #N   = floor(xr/dx)+1; 
   #xspan = linspace(0,xr,N);
-  opt = odeset ("RelTol", 1e-12, "InitialStep", 1e-1, "MaxStep", 1e-1);#, "AbsTol", 1e-8);
-  [xsol, lt] = ode45 (@(x,lt) znd_integrate_x(x,lt,P_0, rho_0, T_0, Q, gamma,Rsp,c_0,D,Ea,k), xspan, [0,0]);
+  opt = odeset ("RelTol", 1e-10, "InitialStep", 1e-2*abs(x12), "MaxStep", 1e-1*abs(x12));#, "AbsTol", 1e-8);
+  [xsol, lt] = ode45 (@(x,lt) znd_integrate_x(x,lt,P_0, rho_0, T_0, Q, gamma,Rsp,c_0,D,Ea,k), xspan, [0,0], opt);
   x = xsol;
   lambda = lt(:,1);
   t      = lt(:,2);
@@ -64,7 +64,10 @@ D = sqrt(f)*D_cj;
   rate = k*(1-lambda).*e.^(-Ea*T_0./T);
   
   %simulation parameters
+  disp('k [1/s]')
   k_nondim = -k*x12
+  disp('k*t12')
+  k_nondim*sqrt(Rsp*T0)
   piston_velocity = U(end)
   
  figure(1)
