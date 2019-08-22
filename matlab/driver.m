@@ -2,10 +2,10 @@
 gamma = 1.2;
 Q   = 50; %Non-dimensionalized
 Ea  = 20; %Non-dimensionalized
-M = 28.96; #Kg/KMol
+Mm  = 28.96; #Kg/KMol
 
 %Overdrive = (D/D_cj)^2
-f = 1.000; 
+f = 1.00; 
 
 %Quiescent State
 P_0 = 100;  # kPa
@@ -14,8 +14,8 @@ T_0 = 298;  # K
 %Constants
 k = 1;     % 1/s, Set k to unity for initial run
 R = 8.314; %kJ/kMol.K
-Rsp   = R / M; # kJ/kg.K
-rho_0 = P_0 / (Rsp *T_0) #kg/m^3;
+Rsp   = R / Mm; # kJ/kg.K
+rho_0 = P_0 / (Rsp *T_0); #kg/m^3;
 c_0 = sqrt(gamma * Rsp*1000 * T_0);
 
 %
@@ -30,12 +30,12 @@ ea= Ea* Rsp *1000*T_0; # KJ/Kg
 [D_cj,P_cj,rho_cj, V_cj, C_cj, M_cj, T_cj, u_cj] = znd_polyfn(P_0, rho_0, T_0, Q, gamma,Rsp,c_0);
 D = sqrt(f)*D_cj;
 
-  tspan = [0 0.5 0.9999]
+  tspan = [0 0.5 0.9999];
   opt = odeset ("RelTol", 1e-10, "InitialStep", 1e-1, "MaxStep", 1e-1);#, "AbsTol", 1e-8);
   [lambda, xt] = ode45(@(lambda,xt) znd_integrate(lambda,xt,P_0, rho_0, T_0, Q, gamma,Rsp,c_0,D,Ea,k), tspan, [0,0], opt);
-  t12 = xt(2,2)
-  x12 = xt(2,1)
-  xr  = xt(3,1)
+  t12 = xt(2,2);
+  x12 = xt(2,1);
+  xr  = xt(3,1);
   
   dx  = x12/N12;
   
@@ -62,23 +62,70 @@ D = sqrt(f)*D_cj;
     [P(i), U(i), c(i), rho(i),V(i),xFD(i),M(i),T(i)] = overdrivenD(P_0, rho_0, T_0, Q, gamma,Rsp,c_0,D,lambda(i));
   end
   rate = k*(1-lambda).*e.^(-Ea*T_0./T);
+
+  fprintf('\n\n')
+  %Dimensional Problem Data
+  fprintf('Dimensional Problem Data\n\n')
+  fprintf('Chemical Parameters\n')
+  fprintf('Molar Mass               Mm [g/mol] %f\n', Mm )
+  fprintf('Gamma                    G  []      %f\n', gamma) 
+  fprintf('Heat Release             Q  [kJ/kg] %e\n', q )
+  fprintf('Activation Energy        Ea [kJ/kg] %e\n', ea)
+  fprintf('Pre-exponential constant k  [1/s]   %e\n', k)
   
-  %simulation parameters
-  disp('k [1/s]')
-  k_nondim = -k*x12
-  disp('k*t12')
-  k_nondim*sqrt(Rsp*T0)
-  piston_velocity = U(end)
+  fprintf('\n')
+  fprintf('Initial Conditions\n')
+  fprintf('Quiescent Pressure    P0 [kPa]     %f\n', P_0)
+  fprintf('Quiescent Temperature T0 [K]       %f\n', T_0)
+  fprintf('Overdrive             f=(D/D_cj)^2 %f\n', f)
+  
+  fprintf('Calculated Results\n')
+  fprintf('Half Reaction Zone Length x_1/2 [m] %e\n', abs(x12))
+  fprintf('Half Reaction Time        t_1/2 [s] %e\n', t12)
+  fprintf('Detonation CJ Velocity    D_cj  [m/s] %f\n', D_cj)
+  fprintf('Detonation Velocity       D     [m/s] %f\n', D)
+  fprintf('Lab Frame Piston Velocity U     [m/s] %f\n', u_cj)
+  fprintf('Wave Frame Piston Velocity (D-U)[m/s] %f\n', (D-u_cj))
+  fprintf('\n\n')
+  %Non-Dimensional Problem Data
+  fprintf('Non-Dimensional Problem Data\n\n')
+  fprintf('Dimensional Lengthscales\n')
+  fprintf('Pressure    P_0\n')
+  fprintf('Temperature T_0\n')
+  fprintf('Energy      Rsp T_0\n')
+  fprintf('Velocity    sqrt(Rsp T_0)\n')
+  fprintf('Length      x_1/2\n')
+  fprintf('Time        x_1/2 / sqrt(Rsp T_0)\n')
+  fprintf('\n\n')
+  fprintf('Chemical Parameters\n')
+  fprintf('Molar Mass               Mm [g/mol] %f\n', Mm ) 
+  fprintf('Gamma                    G  []      %f\n', gamma)
+  fprintf('Heat Release             Q/(RT_0)   %f\n', Q )
+  fprintf('Activation Energy        Ea/(RT_0)  %f\n', Ea)
+  fprintf('Pre-exponential constant k x_1/2 / sqrt(Rsp T_0)    %f\n', k*abs(x12)/sqrt(Rsp*1000*T_0))
+  fprintf('\n')
+  fprintf('Initial Conditions\n')
+  fprintf('Quiescent Pressure    P0 []        %f\n', 1)
+  fprintf('Quiescent Temperature T0 []        %f\n', 1)
+  fprintf('Overdrive             f=(D/D_cj)^2 %f\n', f)
+  
+  fprintf('Half reaction zone time    t_1/2 sqrt(Rsp T_0) /x_1/2 %f\n', abs(t12)*sqrt(Rsp*1000*T_0)/abs(x12))
+  fprintf('Piston Velocity            U/sqrt(Rsp T_0) %f\n', u_cj/sqrt(Rsp*1000*T_0))
+  
+  fprintf('Detonation CJ Mach Number     M_cj      %f\n', D_cj/sqrt(gamma*Rsp*1000*T_0))
+  fprintf('Detonation Mach Number        M         %f\n', D/sqrt(gamma*Rsp*1000*T_0))
+  fprintf('Wave Piston local Mach Number U_cj/c_cj %f\n', (D-u_cj)/sqrt(gamma*Rsp*1000*T_cj))
+
   
  figure(1)
- plot (x,P/P_0, "or" )
+ plot (x/x12,P/P_0, "or" )
  grid
  title('Pressure vs x')
 
  figure(2)
- plot (x, U/c_0)
+ plot (x/x12, (D-U)./sqrt(gamma*Rsp*1000*T))
  grid
- title('Particle Velocity vs x')
+ title('Wave Frame Particle Local Mach Number vs x')
 
  figure(3)
  plot (t/t12,T/T_0, "r" )
@@ -86,12 +133,12 @@ D = sqrt(f)*D_cj;
  title('Temperature vs t')
 
  figure(4)
- plot (x,rho/rho_0, "+bk" )
+ plot (x/x12,rho/rho_0, "+bk" )
  grid
  title('Density vs x')
 
  figure(5)
- plot (x,lambda, "+bk" )
+ plot (x/x12,lambda, "+bk" )
  grid
  title('lambda vs x')
 
